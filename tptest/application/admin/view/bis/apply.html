@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <head>
+       {include file="public/_header" /}
+    </head>
+    <body>
+        <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>商户入驻申请</cite></a>
+              <a><cite>商户入驻申请列表</cite></a>
+            </span>
+            <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+        </div>
+        <div class="x-body">
+            <form class="layui-form x-center" action="" style="width:800px">
+                <div class="layui-form-pane" style="margin-top: 15px;">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">日期范围</label>
+                    <div class="layui-input-inline">
+                      <input class="layui-input" placeholder="开始日" id="LAY_demorange_s">
+                    </div>
+                    <div class="layui-input-inline">
+                      <input class="layui-input" placeholder="截止日" id="LAY_demorange_e">
+                    </div>
+                    <div class="layui-input-inline">
+                      <input type="text" name="username"  placeholder="标题" autocomplete="off" class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width:80px">
+                        <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                    </div>
+                  </div>
+                </div> 
+            </form>
+            <!-- <xblock><button class="layui-btn layui-btn-danger" onclick="delAll()"><i class="layui-icon">&#xe640;</i>批量删除</button><button class="layui-btn" onclick="question_add('添加','question-add.html','600','500')"><i class="layui-icon">&#xe608;</i>添加</button><span class="x-right" style="line-height:40px">共有数据：88 条</span></xblock> -->
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" name="" value="">
+                        </th>
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            商户名称
+                        </th>
+                        <th>
+                            法人
+                        </th>
+                        <th>
+                            法人电话
+                        </th>
+                        <th>
+                            申请时间
+                        </th>
+                        <th>
+                            状态
+                        </th>
+                        <th>
+                            操作
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="applys" id="apply"}
+                    <tr>
+                        <td>
+                            <input type="checkbox" value="1" name="">
+                        </td>
+                        <td>
+                            {$apply.id}
+                        </td>
+                        <td>
+                            <u style="cursor:pointer" onclick="question_show()">
+                                {$apply.name}
+                            </u>
+                        </td>
+                        <td >
+                            {$apply.corpor}
+                        </td>
+                        <td >
+                            {$apply.corpor_tel}
+                        </td>
+                        <td >
+                            {$apply.create_time|date="m-d H:i:s",###}
+                        </td>
+                        <td >
+                            <a href="javascript:;" onclick="edit_status(this, '{$apply.id}', '1')" attr-id="" attr-status="1">{$apply.status|status}</a>
+                        </td>
+                        <td class="td-manage">
+                            <a title="编辑" href="javascript:;" onclick="question_edit('编辑','{:url('Bis/detail',['id'=>$apply.id])}','4','','510')"
+                            class="ml-5" style="text-decoration:none">
+                                <i class="layui-icon">&#xe642;</i>
+                            </a>
+                            <a title="删除" href="javascript:;" onclick="question_del(this, '{$apply.id}', '-1')" 
+                            style="text-decoration:none">
+                                <i class="layui-icon">&#xe640;</i>
+                            </a>
+                            <a title="不通过" href="javascript:;" onclick="edit_status(this, '{$apply.id}', '2')" 
+                            style="text-decoration:none">不通过
+                            </a>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+
+            {:pagination($applys)}
+        </div>
+        {include file="public/footer" /}
+        <script>
+            layui.use(['laydate','element','laypage','layer'], function(){
+                $ = layui.jquery;//jquery
+              laydate = layui.laydate;//日期插件
+              lement = layui.element();//面包导航
+              laypage = layui.laypage;//分页
+              layer = layui.layer;//弹出层
+
+              //以上模块根据需要引入
+              laypage({
+                cont: 'page'
+                ,pages: 100
+                ,first: 1
+                ,last: 100
+                ,prev: '<em><</em>'
+                ,next: '<em>></em>'
+              }); 
+              
+              var start = {
+                min: laydate.now()
+                ,max: '2099-06-16 23:59:59'
+                ,istoday: false
+                ,choose: function(datas){
+                  end.min = datas; //开始日选好后，重置结束日的最小日期
+                  end.start = datas //将结束日的初始值设定为开始日
+                }
+              };
+              
+              var end = {
+                min: laydate.now()
+                ,max: '2099-06-16 23:59:59'
+                ,istoday: false
+                ,choose: function(datas){
+                  start.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+              };
+              
+              document.getElementById('LAY_demorange_s').onclick = function(){
+                start.elem = this;
+                laydate(start);
+              }
+              document.getElementById('LAY_demorange_e').onclick = function(){
+                end.elem = this
+                laydate(end);
+              }
+            });
+
+            /**
+             * [更改审核状态]
+             * @param  {[type]} obj    [对象]
+             * @param  {[type]} id     [id]
+             * @param  {[type]} status [状态]
+             * @return {[type]}        [description]
+             */
+            function edit_status(obj, id, status){
+              var url = "{:url('Bis/status')}";
+              var data = {'id':id,'status':status};
+              $.post(url, data, function(res){
+                if(res.code == 1) {
+                  layer.msg(res.msg, {icon: 1});
+                }else if(res.code == 0){
+                  layer.msg(res.msg, {icon: 1});
+                }
+              });
+            }
+
+            /*删除*/
+            function question_del(obj, id, status){
+                layer.confirm('确认要删除吗？',function(index){
+                    var url = "{:url('Bis/status')}";
+                    var data = {'id':id,'status':status};
+                    //发异步删除数据
+                    $.post(url, data, function(bal){
+                      if(bal.code == 1){
+                          $(obj).parents("tr").remove();
+                          layer.msg('已删除!',{icon:1,time:1000});
+                      }else{
+                          layer.msg('删除失败!', {icon: 1});
+                      }
+                    });
+                });
+            }
+
+            //批量删除提交
+             function delAll () {
+                layer.confirm('确认要删除吗？',function(index){
+                    //捉到所有被选中的，发异步进行删除
+                    layer.msg('删除成功', {icon: 1});
+                });
+             }
+
+             function question_show (argument) {
+                layer.msg('可以跳到前台具体问题页面',{icon:1,time:1000});
+             }
+             /*添加*/
+            function question_add(title,url,w,h){
+                x_admin_show(title,url,w,h);
+            }
+            //编辑 
+           function question_edit (title,url,id,w,h) {
+                x_admin_show(title,url,w,h); 
+            }
+
+            
+            </script>
+            <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+        </script>
+    </body>
+</html>
